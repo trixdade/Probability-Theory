@@ -76,28 +76,42 @@ print(table)  # Печатаем таблицу 2
 
         
 y2 = [] # понадобится для построения графика F_exp
+
 # в Data будет вся информация для третьей таблицы
 difference = [] # понадобится для подсчета максимальной разницы в выборке    
 maximum = max(c)
+P_th = 0
+Frequency = 0
 for x in range(1, maximum + 1):
     d = dict(c)
-    Data.append(x)
-    Data.append(round((1-p)**(x-1) * p, 5)) # теоретическая вероятность
-    Data.append(round(d.get(x, 0)/n, 5)) # частота
-    difference.append(((1-p)**(x-1) * p) - d.get(x, 0)/n)
+    
+    Data.append(x) # value
+    
+    P_th = (1-p)**(x-1) * p # probability
+    Data.append(round((1-p)**(x-1) * p, 5)) 
+    
+    Frequency = d.get(x, 0)/n # frequency
+    Data.append(round(Frequency, 5))
+    
+    diff = ((1-p)**(x-1) * p) - d.get(x, 0)/n # diff
+    difference.append(m.fabs(diff))
+    Data.append(m.fabs(round(diff,5)))
     y2.append(d.get(x, 0)/n)
         
-    max_diff = max(difference)    
+max_diff = max(difference)    
 
-thead = ["Value", "Probability", "Freq"]
+thead = ["Value", "Probability", "Freq", "Diff"]
 printTable(Data, thead) # печатаем таблицу 3
 
-print('Max difference = ', round(max_diff, 5))
+print('Max difference = ', round(max_diff,5))
+
+
+
 
 y1 = [] # понадобится для построения графика F
 summ = 0
 x = range(1, maximum + 1)
-for value in range(0, maximum):
+for value in range(0, len(y2)):
     summ += (1-p)**value * p
     y1.append(summ)
         
@@ -105,5 +119,11 @@ for value in range(0, maximum):
 for i in range(1, len(y2)): 
     y2[i] = y2[i] + y2[i-1] 
 
+D = [] # мера расхождения графиков
+for i in range(1,len(y2)):
+    D.append(m.fabs(y1[i] - y2[i]))
+    
+D_max = max(D)
+print("Максимальное расхождение графиков = ", D_max)
 
 printGraphics(x, y1, y2)
