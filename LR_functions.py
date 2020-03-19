@@ -27,4 +27,3 @@ def findMediana(mass):
     else:
         mass.sort()
         return mass[len(mass)//2] 
-    

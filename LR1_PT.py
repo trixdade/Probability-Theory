@@ -40,6 +40,7 @@ Me_exp = []
 R_exp = []
 table = PrettyTable()
 
+
 # создаем названия колонок
 table.add_column("E",[E])
 table.add_column("E_exp", [E_exp])
