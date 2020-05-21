@@ -1,6 +1,6 @@
 import math as m
 from collections import Counter
-from LR_functions import *
+from functions import *
 from table_graphics import *
 from scipy.stats import chi2
 from Mychi2 import *
@@ -183,24 +183,28 @@ for j in range(k):
     ans = (number_of_observations[j] - n * q[j])**2
     R0 += ans/(n*q[j])
 
-  
 alpha = float(input("Enter alpha: "))    
 print("R0 = ", R0)
-#print("chi2 (alpha =", alpha, ", k =", k, ") =", chi2[alpha][k-1])
-#print(R0 < chi2[alpha][k-1])
 critic_value = 1 - chi2.cdf(R0, k - 1)
+
 print("\n")
 print("FIRST WAY: ")
+# В этом способе мы:
+# Считаем теоретическое значение интегральной функции
+# распределения хи-квадрат с k-1 степенями свободыв точке R0 
+# равное F_(R0), где F_(R0) = 1 - F(R0)
+# и вычисляем critic value для оценки гипотезы 
 print("Critic value =", critic_value)
-
 if critic_value < alpha:
     print("Rejected")
 else:
     print("Not rejected")
 
-
 print("\n")
 print("SECOND WAY: ")
+# Второй вариант, в котором мы берем значение интегральной функции распределения
+# хи-квадрат с уровнем значимости альфа и к-1 степенями свободы
+# и сравниваем R0 с этим значением
 print("MyChi2[alpha][k-1] =",MyChi2[alpha][k-1])
 if R0 < MyChi2[alpha][k-1]:
     print("Not rejected")
