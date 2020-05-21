@@ -2,16 +2,21 @@ import math as m
 from collections import Counter
 from LR_functions import *
 from table_graphics import *
-
+from scipy.stats import chi2
+from Mychi2 import *
 
 # Program starts
 p = float(input("Enter probability value: "))
 n = int(input("Enter number of experiments: "))
-
+k = int(input("Enter amount of intervals: "))
 # проведение экспериментов n раз с вероятностью p
 # в массив numbers записываются значения случайной величины
 numbers = []
 experiment(numbers, n, p)
+
+# словарь частот, исплользуется в ЛР3
+# ключ - значение СВ, значение - частота СВ
+freq = {} 
 
 Data = [] # здесь будут все данные для таблицы
 c = Counter(numbers) # считаем количество каждого элемента в numbers
@@ -21,6 +26,10 @@ for x in range(1, maximum + 1):
     Data.append(x) # сначала добавляем значение СВ
     Data.append(d.get(x, 0)) # количество выпадений СВ X, если нет, то 0
     Data.append(round(d.get(x, 0)/n, 3)) # частота СВ 
+    
+    # каждому значению СВ будет соответствовать 
+    # своя частота
+    freq[x] = d.get(x, 0)/n 
 
     
 thead = ["Value", "Amount", "Freq"] # задаем заголовки столбцов
@@ -70,11 +79,11 @@ D_exp.append(round(s/n,5)) # выборочная дисперсия
 D_diff.append(round(np.fabs(D_exp[0] - D[0]),5)) # разница
 Me_exp.append(findMediana(numbers)) # медиана
 
-R_exp.append(max(numbers)-min(numbers)) # разность макс и мин значений в выборке
+# разность макс и мин значений в выборке
+R_exp.append(max(numbers)-min(numbers)) 
 
 print(table)  # Печатаем таблицу 2
 
-        
 y2 = [] # понадобится для построения графика F_exp
 
 # в Data будет вся информация для третьей таблицы
@@ -105,9 +114,6 @@ printTable(Data, thead) # печатаем таблицу 3
 
 print('Max difference = ', round(max_diff,5))
 
-
-
-
 y1 = [] # понадобится для построения графика F
 summ = 0
 x = range(1, maximum + 1)
@@ -127,3 +133,77 @@ D_max = max(D)
 print("Максимальное расхождение графиков = ", D_max)
 
 printGraphics(x, y1, y2)
+
+
+# LR 3
+#print(numbers)
+z = [] # массив границ интервалов
+for _ in range(k-1):
+    z.append(int(input()))
+
+hist = {}
+for x in range(k-2):
+    hist[x+1] = [number for number in numbers if z[x] <= number < z[x+1]]
+
+hist[0] = [number for number in numbers if number < z[0]]
+hist[k-1] = [number for number in numbers if number >= z[k-2]]
+
+number_of_observations = {} # количество элементов в интервалах
+
+for i in sorted(hist.keys()):
+    #print(i, ':', hist[i])
+    number_of_observations[i] = len(hist[i])
+
+# частота выпадения СВ из интервала (на основе моего эксперимента)
+# не понадобилась (!)
+freq_on_intervals = {} 
+freq_summ = 0
+for i in sorted(hist.keys()):
+    for p in set(hist[i]):
+        freq_summ += freq[p]
+    freq_on_intervals[i] = freq_summ
+    freq_summ = 0
+
+
+
+q = {} # теоретическая вероятность попасть в интервал
+for j in range(k-2):
+    q[j+1] = y1[z[j+1]] - y1[z[j]]
+
+q[0] = y1[z[0]]
+q[k-1] = 1 - y1[z[k-2]]
+
+print("\nq: ")
+for i in sorted(q.keys()):
+    print(i, ':', q[i])
+
+# R0
+R0 = 0
+for j in range(k):
+    ans = (number_of_observations[j] - n * q[j])**2
+    R0 += ans/(n*q[j])
+
+  
+alpha = float(input("Enter alpha: "))    
+print("R0 = ", R0)
+#print("chi2 (alpha =", alpha, ", k =", k, ") =", chi2[alpha][k-1])
+#print(R0 < chi2[alpha][k-1])
+critic_value = 1 - chi2.cdf(R0, k - 1)
+print("\n")
+print("FIRST WAY: ")
+print("Critic value =", critic_value)
+
+if critic_value < alpha:
+    print("Rejected")
+else:
+    print("Not rejected")
+
+
+print("\n")
+print("SECOND WAY: ")
+print("MyChi2[alpha][k-1] =",MyChi2[alpha][k-1])
+if R0 < MyChi2[alpha][k-1]:
+    print("Not rejected")
+else:
+    print("Rejected")
+
